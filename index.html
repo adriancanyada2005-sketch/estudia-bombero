@@ -5,20 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estudia Bombero</title>
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
       background: #f1f5f9;
       color: #172033;
       margin: 0;
-      padding: 24px;
+      padding: 20px;
     }
     header {
       background: #123b2b;
       color: white;
-      padding: 25px;
+      padding: 28px 20px;
       border-radius: 16px;
       text-align: center;
     }
+    header p { margin-bottom: 0; }
     h1 { margin-top: 0; }
     .card {
       background: white;
@@ -27,14 +29,65 @@
       border-radius: 12px;
       box-shadow: 0 2px 8px #0001;
     }
-    button {
+    button, .button {
+      display: inline-block;
       background: #176b48;
       color: white;
       border: 0;
       border-radius: 8px;
       padding: 12px 16px;
       font-size: 16px;
+      cursor: pointer;
+      text-decoration: none;
     }
+    button:hover, .button:hover { background: #105638; }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 7px 0 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .secondary { background: #475569; }
+    .danger { background: #b91c1c; }
+    .item {
+      border: 1px solid #e2e8f0;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 10px 0;
+      overflow-wrap: anywhere;
+    }
+    .muted { color: #64748b; font-size: 14px; }
+    .hidden { display: none; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+    }
+    .stat {
+      background: #ecfdf5;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    .stat strong { display: block; font-size: 24px; }
+    .question { font-size: 18px; font-weight: bold; }
+    label.option {
+      display: block;
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    label.option input { width: auto; margin: 0 8px 0 0; }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    footer { text-align: center; color: #64748b; margin: 25px 0 5px; }
   </style>
 </head>
 <body>
@@ -43,25 +96,247 @@
     <p>Tu espacio para preparar las oposiciones</p>
   </header>
 
-  <section class="card">
-    <h2>📚 Mis temas</h2>
-    <p>Organiza aquí tus temas de estudio.</p>
-    <button onclick="alert('Próximamente podrás organizar tus temas')">
-      Ver mis temas
-    </button>
-  </section>
+  <nav>
+    <button onclick="mostrar('inicio')">Inicio</button>
+    <button onclick="mostrar('temas')">📚 Mis temas</button>
+    <button onclick="mostrar('examenes')">📝 Exámenes</button>
+    <button onclick="mostrar('progreso')">📈 Mi progreso</button>
+  </nav>
 
-  <section class="card">
-    <h2>📝 Exámenes</h2>
-    <p>Prepara tus exámenes tipo test y practica tus conocimientos.</p>
-    <button onclick="alert('Próximamente podrás realizar tests')">
-      Hacer un test
-    </button>
-  </section>
+  <main>
+    <section id="inicio" class="card">
+      <h2>¡Bienvenido!</h2>
+      <p>Organiza tu estudio y practica para preparar las oposiciones de bombero.</p>
+      <div class="stats">
+        <div class="stat"><strong id="totalTemas">0</strong>Temas guardados</div>
+        <div class="stat"><strong id="totalTests">0</strong>Tests completados</div>
+        <div class="stat"><strong id="media">—</strong>Media de aciertos</div>
+      </div>
+    </section>
 
-  <section class="card">
-    <h2>📈 Mi progreso</h2>
-    <p>Próximamente podrás consultar tus resultados y tu evolución.</p>
-  </section>
+    <section id="temas" class="card hidden">
+      <h2>📚 Mis temas</h2>
+      <p>Añade los temas que estás estudiando. Se guardarán en este navegador.</p>
+      <form id="formTema">
+        <label for="nombreTema">Nombre del tema</label>
+        <input id="nombreTema" required placeholder="Ej. Ley 31/1995">
+        <label for="carpetaTema">Carpeta</label>
+        <select id="carpetaTema">
+          <option>IVASPE</option>
+          <option>Legislación</option>
+          <option>Geografía</option>
+          <option>Procedimientos internos</option>
+          <option>Otros</option>
+        </select>
+        <label for="notasTema">Notas (opcional)</label>
+        <textarea id="notasTema" rows="3" placeholder="Resumen o recordatorios"></textarea>
+        <button type="submit">Guardar tema</button>
+      </form>
+      <div id="listaTemas"></div>
+    </section>
+
+    <section id="examenes" class="card hidden">
+      <h2>📝 Practicar test</h2>
+      <p>Prueba este test de demostración. Más adelante podrás añadir preguntas de tus propios temas.</p>
+      <div id="zonaTest">
+        <button onclick="empezarTest()">Empezar test</button>
+      </div>
+    </section>
+
+    <section id="progreso" class="card hidden">
+      <h2>📈 Mi progreso</h2>
+      <p>Resumen de tus tests completados en este navegador.</p>
+      <div id="historial"></div>
+      <button class="secondary" onclick="borrarProgreso()">Borrar historial</button>
+    </section>
+  </main>
+
+  <footer>Estudia Bombero · Tu preparación, paso a paso</footer>
+
+  <script>
+    const leer = clave => {
+      try { return JSON.parse(localStorage.getItem(clave)) || []; }
+      catch { return []; }
+    };
+
+    let temas = leer('bombero_temas');
+    let historial = leer('bombero_historial');
+
+    function guardar() {
+      localStorage.setItem('bombero_temas', JSON.stringify(temas));
+      localStorage.setItem('bombero_historial', JSON.stringify(historial));
+      actualizar();
+    }
+
+    function mostrar(id) {
+      document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+      if (id === 'temas') dibujarTemas();
+      if (id === 'progreso') dibujarHistorial();
+      actualizar();
+    }
+
+    document.getElementById('formTema').addEventListener('submit', e => {
+      e.preventDefault();
+      temas.push({
+        id: Date.now(),
+        nombre: document.getElementById('nombreTema').value.trim(),
+        carpeta: document.getElementById('carpetaTema').value,
+        notas: document.getElementById('notasTema').value.trim()
+      });
+      guardar();
+      e.target.reset();
+      dibujarTemas();
+      alert('Tema guardado.');
+    });
+
+    function dibujarTemas() {
+      const zona = document.getElementById('listaTemas');
+      if (!temas.length) {
+        zona.innerHTML = '<p class="muted">Todavía no has añadido temas.</p>';
+        return;
+      }
+      zona.innerHTML = '';
+      temas.forEach(t => {
+        const item = document.createElement('article');
+        item.className = 'item';
+        const titulo = document.createElement('strong');
+        titulo.textContent = t.nombre;
+        const carpeta = document.createElement('p');
+        carpeta.className = 'muted';
+        carpeta.textContent = 'Carpeta: ' + t.carpeta;
+        const notas = document.createElement('p');
+        notas.textContent = t.notas;
+        const borrar = document.createElement('button');
+        borrar.className = 'danger';
+        borrar.textContent = 'Eliminar';
+        borrar.onclick = () => {
+          if (confirm('¿Eliminar este tema?')) {
+            temas = temas.filter(x => x.id !== t.id);
+            guardar();
+            dibujarTemas();
+          }
+        };
+        item.append(titulo, carpeta, notas, borrar);
+        zona.appendChild(item);
+      });
+    }
+
+    const preguntas = [
+      {
+        p: '¿Qué ley regula la prevención de riesgos laborales en España?',
+        o: ['Ley 31/1995', 'Ley 39/2015', 'Ley 7/1985'],
+        r: 0
+      },
+      {
+        p: '¿Qué se debe hacer primero ante una emergencia, si es seguro intervenir?',
+        o: ['Actuar sin valorar el riesgo', 'Valorar la seguridad de la escena', 'Retirar siempre a la víctima'],
+        r: 1
+      },
+      {
+        p: '¿Qué significan las siglas EPI?',
+        o: ['Equipo de Protección Individual', 'Evaluación Preventiva Interna', 'Equipo de Primeros Intervinientes'],
+        r: 0
+      }
+    ];
+
+    let preguntaActual = 0;
+    let respuestas = [];
+
+    function empezarTest() {
+      preguntaActual = 0;
+      respuestas = [];
+      dibujarPregunta();
+    }
+
+    function dibujarPregunta() {
+      const zona = document.getElementById('zonaTest');
+      if (preguntaActual >= preguntas.length) {
+        const aciertos = respuestas.filter((r, i) => r === preguntas[i].r).length;
+        const nota = Math.round(aciertos / preguntas.length * 100);
+        historial.unshift({
+          fecha: new Date().toLocaleDateString('es-ES'),
+          aciertos, total: preguntas.length, nota
+        });
+        guardar();
+        zona.innerHTML =
+          '<h3>Test terminado</h3><p>Has acertado ' + aciertos + ' de ' +
+          preguntas.length + ' (' + nota + '%).</p>' +
+          '<button onclick="empezarTest()">Repetir test</button>';
+        return;
+      }
+
+      const q = preguntas[preguntaActual];
+      zona.innerHTML = '';
+      const contador = document.createElement('p');
+      contador.className = 'muted';
+      contador.textContent = 'Pregunta ' + (preguntaActual + 1) + ' de ' + preguntas.length;
+      const titulo = document.createElement('p');
+      titulo.className = 'question';
+      titulo.textContent = q.p;
+      zona.append(contador, titulo);
+
+      q.o.forEach((opcion, i) => {
+        const label = document.createElement('label');
+        label.className = 'option';
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'respuesta';
+        radio.value = i;
+        label.append(radio, document.createTextNode(opcion));
+        zona.appendChild(label);
+      });
+
+      const siguiente = document.createElement('button');
+      siguiente.textContent = preguntaActual === preguntas.length - 1 ? 'Finalizar test' : 'Siguiente';
+      siguiente.onclick = () => {
+        const seleccion = document.querySelector('input[name="respuesta"]:checked');
+        if (!seleccion) {
+          alert('Selecciona una respuesta antes de continuar.');
+          return;
+        }
+        respuestas.push(Number(seleccion.value));
+        preguntaActual++;
+        dibujarPregunta();
+      };
+      zona.appendChild(siguiente);
+    }
+
+    function dibujarHistorial() {
+      const zona = document.getElementById('historial');
+      if (!historial.length) {
+        zona.innerHTML = '<p class="muted">Todavía no has completado ningún test.</p>';
+        return;
+      }
+      zona.innerHTML = '';
+      historial.forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.textContent = h.fecha + ' · ' + h.aciertos + '/' + h.total +
+          ' aciertos · ' + h.nota + '%';
+        zona.appendChild(item);
+      });
+    }
+
+    function actualizar() {
+      document.getElementById('totalTemas').textContent = temas.length;
+      document.getElementById('totalTests').textContent = historial.length;
+      document.getElementById('media').textContent = historial.length
+        ? Math.round(historial.reduce((s, h) => s + h.nota, 0) / historial.length) + '%'
+        : '—';
+    }
+
+    function borrarProgreso() {
+      if (confirm('¿Seguro que quieres borrar el historial de tests?')) {
+        historial = [];
+        guardar();
+        dibujarHistorial();
+      }
+    }
+
+    dibujarTemas();
+    dibujarHistorial();
+    actualizar();
+  </script>
 </body>
 </html>
