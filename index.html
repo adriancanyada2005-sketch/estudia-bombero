@@ -16,6 +16,7 @@ main{max-width:850px;margin:22px auto;padding:0 14px}
 h2{margin-top:0}
 input,textarea,select{width:100%;padding:12px;margin:7px 0 13px;border:1px solid #ccd3dc;border-radius:8px;font-size:16px}
 button{border:0;border-radius:8px;padding:12px 16px;background:#d94732;color:white;font-size:15px;font-weight:bold;cursor:pointer;margin:4px 3px 4px 0}
+button:disabled{opacity:.6;cursor:not-allowed}
 button.secondary{background:#26384d}
 button.light{background:#e8edf3;color:#26384d}
 nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
@@ -28,376 +29,362 @@ nav button{flex:1;min-width:110px}
 .option{display:block;width:100%;text-align:left;background:#edf1f5;color:#202733;margin:8px 0}
 .option.selected{background:#dce9ff;border:2px solid #3769aa}
 #userBar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:520px){main{margin:14px auto} .card{padding:16px} nav button{min-width:calc(50% - 6px)}}
 </style>
 </head>
 <body>
-
 <header>
-<h1>🚒 Estudia Bombero</h1>
-<p>Tu espacio de preparación para las oposiciones</p>
+  <h1>🚒 Estudia Bombero</h1>
+  <p>Tu espacio de preparación para las oposiciones</p>
 </header>
-
 <main>
-<section id="authScreen" class="card">
-<h2>Accede a tu cuenta</h2>
-<p class="muted">Inicia sesión o crea una cuenta para entrar en tu espacio privado.</p>
-<label>Correo electrónico</label>
-<input id="email" type="email" placeholder="Tu correo electrónico" autocomplete="email">
-<label>Contraseña</label>
-<input id="password" type="password" placeholder="Tu contraseña" autocomplete="current-password">
-<button id="loginBtn">Iniciar sesión</button>
-<button id="signupBtn" class="secondary">Crear cuenta</button>
-<button id="resetBtn" class="light">He olvidado mi contraseña</button>
-<div id="authMessage" class="message hidden"></div>
-</section>
+  <section id="authScreen" class="card">
+    <h2>Accede a tu cuenta</h2>
+    <p class="muted">Inicia sesión o crea una cuenta para entrar en tu espacio privado.</p>
+    <label for="email">Correo electrónico</label>
+    <input id="email" type="email" placeholder="Tu correo electrónico" autocomplete="email">
+    <label for="password">Contraseña</label>
+    <input id="password" type="password" placeholder="Tu contraseña" autocomplete="current-password">
+    <button id="loginBtn">Iniciar sesión</button>
+    <button id="signupBtn" class="secondary">Crear cuenta</button>
+    <button id="resetBtn" class="light">He olvidado mi contraseña</button>
+    <div id="authMessage" class="message hidden" role="status"></div>
+  </section>
 
-<section id="appScreen" class="hidden">
-<div class="card" id="userBar">
-<span>Sesión iniciada: <strong id="userEmail"></strong></span>
-<button id="logoutBtn" class="secondary">Cerrar sesión</button>
-</div>
+  <section id="appScreen" class="hidden">
+    <div class="card" id="userBar">
+      <span>Sesión iniciada: <strong id="userEmail"></strong></span>
+      <button id="logoutBtn" class="secondary">Cerrar sesión</button>
+    </div>
+    <nav aria-label="Navegación principal">
+      <button data-page="home">Inicio</button>
+      <button data-page="topics" class="secondary">Mis temas</button>
+      <button data-page="documents" class="secondary">Mis documentos</button>
+      <button data-page="exams" class="secondary">Exámenes</button>
+      <button data-page="progress" class="secondary">Mi progreso</button>
+    </nav>
 
-<nav>
-<button data-page="home">Inicio</button>
-<button data-page="topics" class="secondary">Mis temas</button>
-<button data-page="documents" class="secondary">Mis documentos</button>
-<button data-page="exams" class="secondary">Exámenes</button>
-<button data-page="progress" class="secondary">Mi progreso</button>
-</nav>
+    <section id="home" class="page">
+      <div class="card">
+        <h2>Bienvenido a Estudia Bombero</h2>
+        <p>Organiza tus temas y practica con los test.</p>
+        <div class="stat">Temas<br><strong id="totalTopics">0</strong></div>
+        <div class="stat">Tests<br><strong id="totalTests">0</strong></div>
+        <div class="stat">Media<br><strong id="average">0%</strong></div>
+      </div>
+    </section>
 
-<section id="home" class="page">
-<div class="card">
-<h2>Bienvenido a Estudia Bombero</h2>
-<p>Organiza tus temas y practica con los test.</p>
-<div class="stat">Temas<br><strong id="totalTopics">0</strong></div>
-<div class="stat">Tests<br><strong id="totalTests">0</strong></div>
-<div class="stat">Media<br><strong id="average">0%</strong></div>
-</div>
-</section>
+    <section id="topics" class="page hidden">
+      <div class="card">
+        <h2>Mis temas</h2>
+        <form id="topicForm">
+          <label for="topicName">Nombre del tema</label>
+          <input id="topicName" required placeholder="Ej. Ley de prevención de riesgos">
+          <label for="topicFolder">Carpeta</label>
+          <select id="topicFolder">
+            <option>IVASPE</option><option>Legislación</option><option>Geografía</option><option>Procedimientos internos</option>
+          </select>
+          <label for="topicNotes">Notas</label>
+          <textarea id="topicNotes" rows="3" placeholder="Apuntes o información importante..."></textarea>
+          <button type="submit">Guardar tema</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>Temas guardados</h2>
+        <div id="topicList"></div>
+      </div>
+    </section>
 
-<section id="topics" class="page hidden">
-<div class="card">
-<h2>Mis temas</h2>
-<form id="topicForm">
-<label>Nombre del tema</label>
-<input id="topicName" required placeholder="Ej. Ley de prevención de riesgos">
-<label>Carpeta</label>
-<select id="topicFolder">
-<option>IVASPE</option>
-<option>Legislación</option>
-<option>Geografía</option>
-<option>Procedimientos internos</option>
-</select>
-<label>Notas</label>
-<textarea id="topicNotes" rows="3" placeholder="Apuntes o información importante..."></textarea>
-<button type="submit">Guardar tema</button>
-</form>
-</div>
-<div class="card">
-<h2>Temas guardados</h2>
-<div id="topicList"></div>
-</div>
-<section id="documents" class="page hidden">
-  <div class="card">
-    <h2>Mis documentos PDF</h2>
-    <p class="muted">Sube y organiza tus documentos de estudio.</p>
+    <section id="documents" class="page hidden">
+      <div class="card">
+        <h2>Mis documentos PDF</h2>
+        <p class="muted">Sube y organiza tus documentos de estudio. Los archivos se guardan en tu carpeta privada.</p>
+        <label for="documentTitle">Nombre del documento (opcional)</label>
+        <input id="documentTitle" type="text" maxlength="120" placeholder="Ej. Tema 1 - Ley 31/1995">
+        <label for="documentFolder">Carpeta</label>
+        <select id="documentFolder">
+          <option>IVASPE</option><option>Legislación</option><option>Geografía</option><option>Procedimientos internos</option>
+        </select>
+        <label for="documentFile">Seleccionar PDF</label>
+        <input id="documentFile" type="file" accept="application/pdf,.pdf">
+        <button id="uploadDocumentBtn" type="button">Subir documento</button>
+        <div id="documentMessage" class="message hidden" role="status"></div>
+      </div>
+      <div class="card">
+        <h2>Documentos guardados</h2>
+        <div id="documentList"><p class="muted">Entra en esta sección para cargar tus documentos.</p></div>
+      </div>
+    </section>
 
-    <label>Nombre del documento</label>
-    <input id="documentTitle" type="text" placeholder="Ej. Tema 1 - Ley 31/1995">
+    <section id="exams" class="page hidden">
+      <div class="card">
+        <h2>Examen de práctica</h2>
+        <p class="muted">Test demostrativo de 3 preguntas. Todavía no se generan preguntas automáticamente desde los PDF.</p>
+        <div id="quizArea"><button id="startQuiz" type="button">Empezar test</button></div>
+      </div>
+    </section>
 
-    <label>Carpeta</label>
-    <select id="documentFolder">
-      <option>IVASPE</option>
-      <option>Legislación</option>
-      <option>Geografía</option>
-      <option>Procedimientos internos</option>
-    </select>
-
-    <label>Seleccionar PDF</label>
-    <input id="documentFile" type="file" accept=".pdf,application/pdf">
-
-    <button id="uploadDocumentBtn">Subir documento</button>
-    <div id="documentMessage" class="message hidden"></div>
-  </div>
-
-  <div class="card">
-    <h2>Documentos guardados</h2>
-    <div id="documentList"></div>
-  </div>
-</section>
-
-<section id="exams" class="page hidden">
-<div class="card">
-<h2>Examen de práctica</h2>
-<p class="muted">Test demostrativo de 3 preguntas. Más adelante conectaremos tus documentos para crear preguntas basadas en ellos.</p>
-<div id="quizArea">
-<button id="startQuiz">Empezar test</button>
-</div>
-</div>
-</section>
-
-<section id="progress" class="page hidden">
-<div class="card">
-<h2>Mi progreso</h2>
-<div id="history"></div>
-<button id="clearHistory" class="light">Borrar mi historial</button>
-</div>
-</section>
-</section>
+    <section id="progress" class="page hidden">
+      <div class="card">
+        <h2>Mi progreso</h2>
+        <div id="history"></div>
+        <button id="clearHistory" class="light" type="button">Borrar mi historial</button>
+      </div>
+    </section>
+  </section>
 </main>
 
 <script>
+// Configuración del proyecto Supabase.
 const SUPABASE_URL = "https://bwitbaakuzovgirhvkuf.supabase.co";
 const SUPABASE_KEY = "sb_publishable_2SHCGwSWr2MEpwzBz1PkSQ_zANCIo9u";
+const DOCUMENT_BUCKET = "Estudia bombero";
+const MAX_PDF_SIZE = 25 * 1024 * 1024;
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
-  }
-);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
 
 let currentUser = null;
 let topics = [];
 let history = [];
-
+let questionIndex = 0;
+let answers = [];
+let appUserId = null;
 const $ = id => document.getElementById(id);
+const FOLDERS = ["IVASPE", "Legislación", "Geografía", "Procedimientos internos"];
 
 function storageKey(type) {
+  if (!currentUser) return "";
   return `bombero_${type}_${currentUser.id}`;
-}
-
-function loadUserData() {
-  topics = JSON.parse(localStorage.getItem(storageKey("temas")) || "[]");
-  history = JSON.parse(localStorage.getItem(storageKey("historial")) || "[]");
-  renderAll();
-}
-
-function saveTopics() {
-  localStorage.setItem(storageKey("temas"), JSON.stringify(topics));
-  renderAll();
-}
-
-function saveHistory() {
-  localStorage.setItem(storageKey("historial"), JSON.stringify(history));
-  renderAll();
 }
 
 function showMessage(message) {
   $("authMessage").textContent = message;
   $("authMessage").classList.remove("hidden");
 }
+function showDocumentMessage(message) {
+  $("documentMessage").textContent = message;
+  $("documentMessage").classList.remove("hidden");
+}
+function hideDocumentMessage() {
+  $("documentMessage").classList.add("hidden");
+}
+
+function loadUserData() {
+  if (!currentUser) return;
+  try {
+    topics = JSON.parse(localStorage.getItem(storageKey("temas")) || "[]");
+    history = JSON.parse(localStorage.getItem(storageKey("historial")) || "[]");
+  } catch (error) {
+    topics = [];
+    history = [];
+    console.error("No se pudieron leer los datos locales:", error);
+  }
+  renderAll();
+}
+function saveTopics() {
+  if (!currentUser) return;
+  localStorage.setItem(storageKey("temas"), JSON.stringify(topics));
+  renderAll();
+}
+function saveHistory() {
+  if (!currentUser) return;
+  localStorage.setItem(storageKey("historial"), JSON.stringify(history));
+  renderAll();
+}
 
 function showApp(user) {
+  if (!user) return;
+  const isNewUser = appUserId !== user.id;
   currentUser = user;
+  appUserId = user.id;
   $("authScreen").classList.add("hidden");
   $("appScreen").classList.remove("hidden");
   $("userEmail").textContent = user.email || "Usuario";
-  loadUserData();
+  if (isNewUser) {
+    loadUserData();
+    showPage("home");
+  }
 }
-
 function showAuth() {
   currentUser = null;
+  appUserId = null;
   topics = [];
   history = [];
   $("appScreen").classList.add("hidden");
   $("authScreen").classList.remove("hidden");
   $("email").value = "";
   $("password").value = "";
+  $("authMessage").classList.add("hidden");
+  $("documentList").innerHTML = "";
+}
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach(page => page.classList.add("hidden"));
+  const page = $(pageId);
+  if (!page) return;
+  page.classList.remove("hidden");
+  document.querySelectorAll("nav button").forEach(button => {
+    button.classList.toggle("secondary", button.dataset.page !== pageId);
+  });
+  if (pageId === "documents") loadDocuments();
 }
 
+// Registro
 $("signupBtn").addEventListener("click", async () => {
   const email = $("email").value.trim();
   const password = $("password").value;
   if (!email || !password) return showMessage("Introduce tu correo y contraseña.");
   if (password.length < 6) return showMessage("La contraseña debe tener al menos 6 caracteres.");
-
   $("signupBtn").disabled = true;
   showMessage("Creando cuenta...");
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo: "https://estudia-bombero.vercel.app" }
-  });
-  $("signupBtn").disabled = false;
-
-  if (error) return showMessage("No se pudo crear la cuenta: " + error.message);
-
-  if (data.session) {
-    showApp(data.user);
-  } else {
-    showMessage("Cuenta creada. Revisa tu correo y confirma la dirección antes de iniciar sesión.");
+  try {
+    const { data, error } = await supabaseClient.auth.signUp({
+      email, password,
+      options: { emailRedirectTo: "https://estudia-bombero.vercel.app" }
+    });
+    if (error) throw error;
+    if (data.session && data.user) showApp(data.user);
+    else showMessage("Cuenta creada. Revisa tu correo y confirma la dirección antes de iniciar sesión.");
+  } catch (error) {
+    showMessage("No se pudo crear la cuenta: " + error.message);
+  } finally {
+    $("signupBtn").disabled = false;
   }
 });
 
+// Inicio de sesión
 $("loginBtn").addEventListener("click", async () => {
   const email = $("email").value.trim();
   const password = $("password").value;
   if (!email || !password) return showMessage("Introduce tu correo y contraseña.");
-
   $("loginBtn").disabled = true;
   showMessage("Iniciando sesión...");
-  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  $("loginBtn").disabled = false;
-
-  if (error) return showMessage("No se pudo iniciar sesión: " + error.message);
-  showApp(data.user);
-});
-
-$("resetBtn").addEventListener("click", async () => {
-  const email = $("email").value.trim();
-  if (!email) return showMessage("Escribe primero tu correo electrónico.");
-
-  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-    redirectTo: "https://estudia-bombero.vercel.app"
-  });
-
-  if (error) return showMessage("No se pudo enviar el correo: " + error.message);
-  showMessage("Si la dirección es válida, recibirás un correo con instrucciones para cambiar la contraseña.");
-});
-
-$("logoutBtn").addEventListener("click", async () => {
-  const { error } = await supabaseClient.auth.signOut();
-  if (error) return alert("No se pudo cerrar sesión: " + error.message);
-  showAuth();
-});
-
-supabaseClient.auth.onAuthStateChange((event, session) => {
-  if (session?.user) {
-    showApp(session.user);
-  } else if (event === "SIGNED_OUT") {
-    showAuth();
+  try {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    showApp(data.user);
+  } catch (error) {
+    showMessage("No se pudo iniciar sesión: " + error.message);
+  } finally {
+    $("loginBtn").disabled = false;
   }
 });
 
-document.querySelectorAll("nav button").forEach(button => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll(".page").forEach(page => page.classList.add("hidden"));
-    $(button.dataset.page).classList.remove("hidden");
-
-    document.querySelectorAll("nav button").forEach(b => b.classList.add("secondary"));
-    button.classList.remove("secondary");
-
-    if (button.dataset.page === "documents") {
-      loadDocuments();
-    }
-  });
+// Recuperación de contraseña
+$("resetBtn").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  if (!email) return showMessage("Escribe primero tu correo electrónico.");
+  try {
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: "https://estudia-bombero.vercel.app"
+    });
+    if (error) throw error;
+    showMessage("Si la dirección es válida, recibirás un correo con instrucciones para cambiar la contraseña.");
+  } catch (error) {
+    showMessage("No se pudo enviar el correo: " + error.message);
+  }
 });
 
+// Cerrar sesión
+$("logoutBtn").addEventListener("click", async () => {
+  $("logoutBtn").disabled = true;
+  try {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) throw error;
+    showAuth();
+  } catch (error) {
+    alert("No se pudo cerrar sesión: " + error.message);
+  } finally {
+    $("logoutBtn").disabled = false;
+  }
+});
+
+// Cambiar de sección
+document.querySelectorAll("nav button").forEach(button => {
+  button.addEventListener("click", () => showPage(button.dataset.page));
+});
+
+// Temas: se guardan localmente y separados por usuario en este dispositivo.
 $("topicForm").addEventListener("submit", event => {
   event.preventDefault();
   if (!currentUser) return;
-
+  const name = $("topicName").value.trim();
+  if (!name) return;
   topics.push({
-    id: Date.now(),
-    name: $("topicName").value.trim(),
+    id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
+    name,
     folder: $("topicFolder").value,
     notes: $("topicNotes").value.trim()
   });
-
   saveTopics();
   $("topicForm").reset();
 });
 
 function renderTopics() {
-  $("topicList").innerHTML = "";
-
+  const list = $("topicList");
+  list.innerHTML = "";
   if (!topics.length) {
-    $("topicList").textContent = "Todavía no has guardado ningún tema.";
+    list.textContent = "Todavía no has guardado ningún tema.";
     return;
   }
-
   topics.forEach(topic => {
     const div = document.createElement("div");
     div.className = "topic";
-
     const title = document.createElement("strong");
     title.textContent = topic.name;
-
     const folder = document.createElement("p");
     folder.className = "muted";
     folder.textContent = topic.folder;
-
     const notes = document.createElement("p");
     notes.textContent = topic.notes || "Sin notas.";
-
     const remove = document.createElement("button");
     remove.className = "light";
     remove.textContent = "Eliminar";
     remove.addEventListener("click", () => {
-      topics = topics.filter(t => t.id !== topic.id);
+      topics = topics.filter(item => item.id !== topic.id);
       saveTopics();
     });
-
     div.append(title, folder, notes, remove);
-    $("topicList").appendChild(div);
+    list.appendChild(div);
   });
 }
 
+// Test demostrativo
 const questions = [
-  {
-    q: "¿Qué significan las siglas EPI?",
-    a: ["Equipo de Protección Individual", "Elemento de Prevención Interna", "Equipo de Protección Industrial"],
-    correct: 0
-  },
-  {
-    q: "¿Qué gas es imprescindible para la combustión?",
-    a: ["Nitrógeno", "Oxígeno", "Dióxido de carbono"],
-    correct: 1
-  },
-  {
-    q: "¿Cuál es una función habitual de los bomberos?",
-    a: ["Extinción de incendios", "Expedir documentos oficiales", "Gestionar centros educativos"],
-    correct: 0
-  }
+  { q: "¿Qué significan las siglas EPI?", a: ["Equipo de Protección Individual", "Elemento de Prevención Interna", "Equipo de Protección Industrial"], correct: 0 },
+  { q: "¿Qué gas es imprescindible para la combustión?", a: ["Nitrógeno", "Oxígeno", "Dióxido de carbono"], correct: 1 },
+  { q: "¿Cuál es una función habitual de los bomberos?", a: ["Extinción de incendios", "Expedir documentos oficiales", "Gestionar centros educativos"], correct: 0 }
 ];
-
-let questionIndex = 0;
-let answers = [];
 
 $("startQuiz").addEventListener("click", () => {
   questionIndex = 0;
   answers = [];
   drawQuestion();
 });
-
 function drawQuestion() {
-  const q = questions[questionIndex];
-  $("quizArea").innerHTML = "";
-
+  const question = questions[questionIndex];
+  const area = $("quizArea");
+  area.innerHTML = "";
   const heading = document.createElement("h3");
-  heading.textContent = `Pregunta ${questionIndex + 1} de ${questions.length}: ${q.q}`;
-  $("quizArea").appendChild(heading);
-
-  q.a.forEach((answer, index) => {
+  heading.textContent = `Pregunta ${questionIndex + 1} de ${questions.length}: ${question.q}`;
+  area.appendChild(heading);
+  question.a.forEach((answer, index) => {
     const button = document.createElement("button");
     button.className = "option";
     button.textContent = answer;
     button.addEventListener("click", () => {
       answers[questionIndex] = index;
       questionIndex++;
-
-      if (questionIndex < questions.length) {
-        drawQuestion();
-      } else {
-        finishQuiz();
-      }
+      if (questionIndex < questions.length) drawQuestion();
+      else finishQuiz();
     });
-    $("quizArea").appendChild(button);
+    area.appendChild(button);
   });
 }
 
 function finishQuiz() {
-  let correct = 0;
-  questions.forEach((q, i) => {
-    if (answers[i] === q.correct) correct++;
-  });
-
+  const correct = questions.reduce((total, question, index) => total + (answers[index] === question.correct ? 1 : 0), 0);
   const percentage = Math.round(correct / questions.length * 100);
   history.unshift({
     date: new Date().toLocaleString("es-ES"),
@@ -405,39 +392,43 @@ function finishQuiz() {
     total: questions.length,
     percentage
   });
-
   saveHistory();
-  $("quizArea").innerHTML = `
-    <h3>Test terminado</h3>
-    <p>Has acertado ${correct} de ${questions.length} preguntas.</p>
-    <h2>${percentage}%</h2>
-    <button id="againBtn">Repetir test</button>
-  `;
-  $("againBtn").addEventListener("click", () => $("startQuiz").click());
+  $("quizArea").innerHTML = "";
+  const heading = document.createElement("h3");
+  heading.textContent = "Test terminado";
+  const result = document.createElement("p");
+  result.textContent = `Has acertado ${correct} de ${questions.length} preguntas.`;
+  const score = document.createElement("h2");
+  score.textContent = `${percentage}%`;
+  const again = document.createElement("button");
+  again.textContent = "Repetir test";
+  again.addEventListener("click", () => {
+    questionIndex = 0;
+    answers = [];
+    drawQuestion();
+  });
+  $("quizArea").append(heading, result, score, again);
 }
 
 function renderHistory() {
-  $("history").innerHTML = "";
-
+  const list = $("history");
+  list.innerHTML = "";
   if (!history.length) {
-    $("history").textContent = "Todavía no has realizado ningún test.";
+    list.textContent = "Todavía no has realizado ningún test.";
     return;
   }
-
   history.forEach(item => {
     const div = document.createElement("div");
     div.className = "topic";
     div.textContent = `${item.date} — ${item.correct}/${item.total} aciertos (${item.percentage}%)`;
-    $("history").appendChild(div);
+    list.appendChild(div);
   });
 }
-
 $("clearHistory").addEventListener("click", () => {
   if (!confirm("¿Seguro que quieres borrar tu historial?")) return;
   history = [];
   saveHistory();
 });
-
 function renderAll() {
   renderTopics();
   renderHistory();
@@ -448,160 +439,142 @@ function renderAll() {
     : 0;
   $("average").textContent = average + "%";
 }
-// Gestión de documentos PDF en Supabase Storage
-const DOCUMENT_BUCKET = "Estudia bombero";
 
-function showDocumentMessage(message) {
-  $("documentMessage").textContent = message;
-  $("documentMessage").classList.remove("hidden");
-}
-
+// Documentos PDF: archivos privados por usuario.
 async function loadDocuments() {
   if (!currentUser) return;
-
   const list = $("documentList");
-  list.textContent = "Cargando documentos...";
-
-  const folders = [
-    "IVASPE",
-    "Legislación",
-    "Geografía",
-    "Procedimientos internos"
-  ];
-
   list.innerHTML = "";
+  const loading = document.createElement("p");
+  loading.className = "muted";
+  loading.textContent = "Cargando documentos...";
+  list.appendChild(loading);
 
-  for (const folder of folders) {
+  for (const folder of FOLDERS) {
     const heading = document.createElement("h3");
     heading.textContent = folder;
     list.appendChild(heading);
-
-    const { data, error } = await supabaseClient.storage
-      .from(DOCUMENT_BUCKET)
-      .list(`${currentUser.id}/${folder}`);
-
-    if (error) {
-      list.textContent = "Error al cargar documentos: " + error.message;
-      return;
-    }
-
-    const files = (data || []).filter(file => file.id);
-
-    if (!files.length) {
-      const empty = document.createElement("p");
-      empty.className = "muted";
-      empty.textContent = "No hay documentos en esta carpeta.";
-      list.appendChild(empty);
-    }
-
-    for (const file of files) {
-      const path = `${currentUser.id}/${folder}/${file.name}`;
-      const item = document.createElement("div");
-      item.className = "topic";
-
-      const name = document.createElement("strong");
-      name.textContent = file.name;
-
-      const open = document.createElement("button");
-      open.textContent = "Abrir PDF";
-      open.addEventListener("click", async () => {
-        const { data, error } = await supabaseClient.storage
-          .from(DOCUMENT_BUCKET)
-          .createSignedUrl(path, 60);
-
-        if (error) {
-          alert("No se pudo abrir el PDF: " + error.message);
-          return;
-        }
-
-        window.open(data.signedUrl, "_blank");
+    try {
+      const { data, error } = await supabaseClient.storage
+        .from(DOCUMENT_BUCKET)
+        .list(`${currentUser.id}/${folder}`, {
+          limit: 100,
+          sortBy: { column: "name", order: "asc" }
+        });
+      if (error) throw error;
+      const files = (data || []).filter(file => file.id && file.name);
+      if (!files.length) {
+        const empty = document.createElement("p");
+        empty.className = "muted";
+        empty.textContent = "No hay documentos en esta carpeta.";
+        list.appendChild(empty);
+      }
+      files.forEach(file => {
+        const path = `${currentUser.id}/${folder}/${file.name}`;
+        const item = document.createElement("div");
+        item.className = "topic";
+        const name = document.createElement("strong");
+        name.textContent = file.metadata?.title || file.name;
+        const details = document.createElement("p");
+        details.className = "muted";
+        details.textContent = file.name;
+        const open = document.createElement("button");
+        open.textContent = "Abrir PDF";
+        open.addEventListener("click", async () => {
+          const newTab = window.open("about:blank", "_blank");
+          try {
+            const { data: signed, error: signedError } = await supabaseClient.storage
+              .from(DOCUMENT_BUCKET).createSignedUrl(path, 60);
+            if (signedError) throw signedError;
+            if (newTab) newTab.location.href = signed.signedUrl;
+            else window.location.href = signed.signedUrl;
+          } catch (error) {
+            if (newTab) newTab.close();
+            alert("No se pudo abrir el PDF: " + error.message);
+          }
+        });
+        const remove = document.createElement("button");
+        remove.className = "light";
+        remove.textContent = "Eliminar";
+        remove.addEventListener("click", async () => {
+          if (!confirm("¿Quieres eliminar este documento?")) return;
+          remove.disabled = true;
+          try {
+            const { error } = await supabaseClient.storage
+              .from(DOCUMENT_BUCKET).remove([path]);
+            if (error) throw error;
+            await loadDocuments();
+          } catch (error) {
+            alert("No se pudo eliminar: " + error.message);
+            remove.disabled = false;
+          }
+        });
+        item.append(name, details, open, remove);
+        list.appendChild(item);
       });
-
-      const remove = document.createElement("button");
-      remove.className = "light";
-      remove.textContent = "Eliminar";
-
-      remove.addEventListener("click", async () => {
-        if (!confirm("¿Quieres eliminar este documento?")) return;
-
-        const { error } = await supabaseClient.storage
-          .from(DOCUMENT_BUCKET)
-          .remove([path]);
-
-        if (error) {
-          alert("No se pudo eliminar: " + error.message);
-          return;
-        }
-
-        loadDocuments();
-      });
-
-      item.append(name, document.createElement("br"), open, remove);
-      list.appendChild(item);
+    } catch (error) {
+      const errorLine = document.createElement("p");
+      errorLine.className = "message";
+      errorLine.textContent = `Error al cargar ${folder}: ${error.message}`;
+      list.appendChild(errorLine);
     }
   }
 }
 
 $("uploadDocumentBtn").addEventListener("click", async () => {
   if (!currentUser) return;
-
+  hideDocumentMessage();
   const file = $("documentFile").files[0];
   const title = $("documentTitle").value.trim();
   const folder = $("documentFolder").value;
-
-  if (!file) {
-    showDocumentMessage("Selecciona primero un archivo PDF.");
-    return;
+  if (!file) return showDocumentMessage("Selecciona primero un archivo PDF.");
+  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+    return showDocumentMessage("Solo puedes subir archivos PDF.");
   }
-
-  if (file.type !== "application/pdf") {
-    showDocumentMessage("Solo puedes subir archivos PDF.");
-    return;
+  if (file.size > MAX_PDF_SIZE) {
+    return showDocumentMessage("El PDF no puede superar los 25 MB.");
   }
-
-  if (file.size > 25 * 1024 * 1024) {
-    showDocumentMessage("El PDF no puede superar los 25 MB.");
-    return;
-  }
-
-  const safeName = file.name.replace(/[^\w.-]/g, "_");
+  const safeName = file.name.normalize("NFKD").replace(/[^\w.-]/g, "_");
   const fileName = `${Date.now()}_${safeName}`;
   const path = `${currentUser.id}/${folder}/${fileName}`;
-
-  $("uploadDocumentBtn").disabled = true;
+  const button = $("uploadDocumentBtn");
+  button.disabled = true;
   showDocumentMessage("Subiendo documento...");
-
-  const { error } = await supabaseClient.storage
-    .from(DOCUMENT_BUCKET)
-    .upload(path, file, {
-      contentType: "application/pdf",
-      upsert: false
-    });
-
-  $("uploadDocumentBtn").disabled = false;
-
-  if (error) {
+  try {
+    const { error } = await supabaseClient.storage
+      .from(DOCUMENT_BUCKET)
+      .upload(path, file, {
+        contentType: "application/pdf",
+        upsert: false,
+        metadata: title ? { title } : {}
+      });
+    if (error) throw error;
+    showDocumentMessage(`Documento "${title || file.name}" subido correctamente.`);
+    $("documentTitle").value = "";
+    $("documentFile").value = "";
+    await loadDocuments();
+  } catch (error) {
     showDocumentMessage("Error al subir el PDF: " + error.message);
-    return;
+  } finally {
+    button.disabled = false;
   }
-
-  showDocumentMessage(
-    `Documento "${title || file.name}" subido correctamente.`
-  );
-
-  $("documentTitle").value = "";
-  $("documentFile").value = "";
-
-  await loadDocuments();
 });
+
+// Mantener la interfaz sincronizada con la sesión de Supabase.
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if (session?.user) showApp(session.user);
+  else if (event === "SIGNED_OUT") showAuth();
+});
+
 // Recuperar la sesión guardada al abrir la web.
 (async () => {
-  const { data, error } = await supabaseClient.auth.getSession();
-  if (error) {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+    if (data.session?.user) showApp(data.session.user);
+  } catch (error) {
     showMessage("No se pudo comprobar la sesión: " + error.message);
-    return;
   }
-  if (data.session?.user) showApp(data.session.user);
 })();
 </script>
 </body>
