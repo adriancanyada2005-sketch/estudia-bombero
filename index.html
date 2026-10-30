@@ -1,346 +1,430 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Estudia Bombero</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: Arial, sans-serif;
-      background: #f1f5f9;
-      color: #172033;
-      margin: 0;
-      padding: 20px;
-    }
-    header {
-      background: #123b2b;
-      color: white;
-      padding: 28px 20px;
-      border-radius: 16px;
-      text-align: center;
-    }
-    header p { margin-bottom: 0; }
-    h1 { margin-top: 0; }
-    .card {
-      background: white;
-      padding: 20px;
-      margin-top: 18px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px #0001;
-    }
-    button, .button {
-      display: inline-block;
-      background: #176b48;
-      color: white;
-      border: 0;
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 16px;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    button:hover, .button:hover { background: #105638; }
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      margin: 7px 0 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    .secondary { background: #475569; }
-    .danger { background: #b91c1c; }
-    .item {
-      border: 1px solid #e2e8f0;
-      padding: 12px;
-      border-radius: 8px;
-      margin: 10px 0;
-      overflow-wrap: anywhere;
-    }
-    .muted { color: #64748b; font-size: 14px; }
-    .hidden { display: none; }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 12px;
-    }
-    .stat {
-      background: #ecfdf5;
-      padding: 15px;
-      border-radius: 10px;
-    }
-    .stat strong { display: block; font-size: 24px; }
-    .question { font-size: 18px; font-weight: bold; }
-    label.option {
-      display: block;
-      background: #f8fafc;
-      padding: 12px;
-      border-radius: 8px;
-      margin: 8px 0;
-      cursor: pointer;
-    }
-    label.option input { width: auto; margin: 0 8px 0 0; }
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
-    }
-    footer { text-align: center; color: #64748b; margin: 25px 0 5px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estudia Bombero</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f5f8;color:#202733}
+header{background:#182638;color:white;padding:22px 16px;text-align:center}
+header h1{margin:0;font-size:25px}
+header p{margin:7px 0 0;color:#cbd5e1}
+main{max-width:850px;margin:22px auto;padding:0 14px}
+.card{background:white;padding:20px;border-radius:13px;margin-bottom:16px;box-shadow:0 2px 9px #0000000c}
+h2{margin-top:0}
+input,textarea,select{width:100%;padding:12px;margin:7px 0 13px;border:1px solid #ccd3dc;border-radius:8px;font-size:16px}
+button{border:0;border-radius:8px;padding:12px 16px;background:#d94732;color:white;font-size:15px;font-weight:bold;cursor:pointer;margin:4px 3px 4px 0}
+button.secondary{background:#26384d}
+button.light{background:#e8edf3;color:#26384d}
+nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+nav button{flex:1;min-width:110px}
+.hidden{display:none!important}
+.muted{color:#667085;font-size:14px}
+.message{padding:11px;border-radius:8px;background:#fff3df;margin-top:10px;white-space:pre-wrap}
+.topic{border:1px solid #e2e6ec;padding:13px;border-radius:9px;margin:9px 0}
+.stat{display:inline-block;background:#eef2f6;padding:13px;border-radius:9px;margin:4px;min-width:110px}
+.option{display:block;width:100%;text-align:left;background:#edf1f5;color:#202733;margin:8px 0}
+.option.selected{background:#dce9ff;border:2px solid #3769aa}
+#userBar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+</style>
 </head>
 <body>
-  <header>
-    <h1>🚒 Estudia Bombero</h1>
-    <p>Tu espacio para preparar las oposiciones</p>
-  </header>
 
-  <nav>
-    <button onclick="mostrar('inicio')">Inicio</button>
-    <button onclick="mostrar('temas')">📚 Mis temas</button>
-    <button onclick="mostrar('examenes')">📝 Exámenes</button>
-    <button onclick="mostrar('progreso')">📈 Mi progreso</button>
-  </nav>
+<header>
+<h1>🚒 Estudia Bombero</h1>
+<p>Tu espacio de preparación para las oposiciones</p>
+</header>
 
-  <main>
-    <section id="inicio" class="card">
-      <h2>¡Bienvenido!</h2>
-      <p>Organiza tu estudio y practica para preparar las oposiciones de bombero.</p>
-      <div class="stats">
-        <div class="stat"><strong id="totalTemas">0</strong>Temas guardados</div>
-        <div class="stat"><strong id="totalTests">0</strong>Tests completados</div>
-        <div class="stat"><strong id="media">—</strong>Media de aciertos</div>
-      </div>
-    </section>
+<main>
+<section id="authScreen" class="card">
+<h2>Accede a tu cuenta</h2>
+<p class="muted">Inicia sesión o crea una cuenta para entrar en tu espacio privado.</p>
+<label>Correo electrónico</label>
+<input id="email" type="email" placeholder="Tu correo electrónico" autocomplete="email">
+<label>Contraseña</label>
+<input id="password" type="password" placeholder="Tu contraseña" autocomplete="current-password">
+<button id="loginBtn">Iniciar sesión</button>
+<button id="signupBtn" class="secondary">Crear cuenta</button>
+<button id="resetBtn" class="light">He olvidado mi contraseña</button>
+<div id="authMessage" class="message hidden"></div>
+</section>
 
-    <section id="temas" class="card hidden">
-      <h2>📚 Mis temas</h2>
-      <p>Añade los temas que estás estudiando. Se guardarán en este navegador.</p>
-      <form id="formTema">
-        <label for="nombreTema">Nombre del tema</label>
-        <input id="nombreTema" required placeholder="Ej. Ley 31/1995">
-        <label for="carpetaTema">Carpeta</label>
-        <select id="carpetaTema">
-          <option>IVASPE</option>
-          <option>Legislación</option>
-          <option>Geografía</option>
-          <option>Procedimientos internos</option>
-          <option>Otros</option>
-        </select>
-        <label for="notasTema">Notas (opcional)</label>
-        <textarea id="notasTema" rows="3" placeholder="Resumen o recordatorios"></textarea>
-        <button type="submit">Guardar tema</button>
-      </form>
-      <div id="listaTemas"></div>
-    </section>
+<section id="appScreen" class="hidden">
+<div class="card" id="userBar">
+<span>Sesión iniciada: <strong id="userEmail"></strong></span>
+<button id="logoutBtn" class="secondary">Cerrar sesión</button>
+</div>
 
-    <section id="examenes" class="card hidden">
-      <h2>📝 Practicar test</h2>
-      <p>Prueba este test de demostración. Más adelante podrás añadir preguntas de tus propios temas.</p>
-      <div id="zonaTest">
-        <button onclick="empezarTest()">Empezar test</button>
-      </div>
-    </section>
+<nav>
+<button data-page="home">Inicio</button>
+<button data-page="topics" class="secondary">Mis temas</button>
+<button data-page="exams" class="secondary">Exámenes</button>
+<button data-page="progress" class="secondary">Mi progreso</button>
+</nav>
 
-    <section id="progreso" class="card hidden">
-      <h2>📈 Mi progreso</h2>
-      <p>Resumen de tus tests completados en este navegador.</p>
-      <div id="historial"></div>
-      <button class="secondary" onclick="borrarProgreso()">Borrar historial</button>
-    </section>
-  </main>
+<section id="home" class="page">
+<div class="card">
+<h2>Bienvenido a Estudia Bombero</h2>
+<p>Organiza tus temas y practica con los test.</p>
+<div class="stat">Temas<br><strong id="totalTopics">0</strong></div>
+<div class="stat">Tests<br><strong id="totalTests">0</strong></div>
+<div class="stat">Media<br><strong id="average">0%</strong></div>
+</div>
+</section>
 
-  <footer>Estudia Bombero · Tu preparación, paso a paso</footer>
+<section id="topics" class="page hidden">
+<div class="card">
+<h2>Mis temas</h2>
+<form id="topicForm">
+<label>Nombre del tema</label>
+<input id="topicName" required placeholder="Ej. Ley de prevención de riesgos">
+<label>Carpeta</label>
+<select id="topicFolder">
+<option>IVASPE</option>
+<option>Legislación</option>
+<option>Geografía</option>
+<option>Procedimientos internos</option>
+</select>
+<label>Notas</label>
+<textarea id="topicNotes" rows="3" placeholder="Apuntes o información importante..."></textarea>
+<button type="submit">Guardar tema</button>
+</form>
+</div>
+<div class="card">
+<h2>Temas guardados</h2>
+<div id="topicList"></div>
+</div>
+</section>
 
-  <!-- Librería de Supabase añadida -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<section id="exams" class="page hidden">
+<div class="card">
+<h2>Examen de práctica</h2>
+<p class="muted">Test demostrativo de 3 preguntas. Más adelante conectaremos tus documentos para crear preguntas basadas en ellos.</p>
+<div id="quizArea">
+<button id="startQuiz">Empezar test</button>
+</div>
+</div>
+</section>
 
-  <script>
-    const leer = clave => {
-      try { return JSON.parse(localStorage.getItem(clave)) || []; }
-      catch { return []; }
-    };
+<section id="progress" class="page hidden">
+<div class="card">
+<h2>Mi progreso</h2>
+<div id="history"></div>
+<button id="clearHistory" class="light">Borrar mi historial</button>
+</div>
+</section>
+</section>
+</main>
 
-    let temas = leer('bombero_temas');
-    let historial = leer('bombero_historial');
+<script>
+const SUPABASE_URL = "https://bwibaakuzovgirhvkuf.supabase.co";
+const SUPABASE_KEY = "sb_publishable_2SHCGwSWr2MEpwzBz1PkSQ_zANCIo9u";
 
-    function guardar() {
-      localStorage.setItem('bombero_temas', JSON.stringify(temas));
-      localStorage.setItem('bombero_historial', JSON.stringify(historial));
-      actualizar();
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
     }
+  }
+);
 
-    function mostrar(id) {
-      document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
-      document.getElementById(id).classList.remove('hidden');
-      if (id === 'temas') dibujarTemas();
-      if (id === 'progreso') dibujarHistorial();
-      actualizar();
-    }
+let currentUser = null;
+let topics = [];
+let history = [];
 
-    document.getElementById('formTema').addEventListener('submit', e => {
-      e.preventDefault();
-      temas.push({
-        id: Date.now(),
-        nombre: document.getElementById('nombreTema').value.trim(),
-        carpeta: document.getElementById('carpetaTema').value,
-        notas: document.getElementById('notasTema').value.trim()
-      });
-      guardar();
-      e.target.reset();
-      dibujarTemas();
-      alert('Tema guardado.');
+const $ = id => document.getElementById(id);
+
+function storageKey(type) {
+  return `bombero_${type}_${currentUser.id}`;
+}
+
+function loadUserData() {
+  topics = JSON.parse(localStorage.getItem(storageKey("temas")) || "[]");
+  history = JSON.parse(localStorage.getItem(storageKey("historial")) || "[]");
+  renderAll();
+}
+
+function saveTopics() {
+  localStorage.setItem(storageKey("temas"), JSON.stringify(topics));
+  renderAll();
+}
+
+function saveHistory() {
+  localStorage.setItem(storageKey("historial"), JSON.stringify(history));
+  renderAll();
+}
+
+function showMessage(message) {
+  $("authMessage").textContent = message;
+  $("authMessage").classList.remove("hidden");
+}
+
+function showApp(user) {
+  currentUser = user;
+  $("authScreen").classList.add("hidden");
+  $("appScreen").classList.remove("hidden");
+  $("userEmail").textContent = user.email || "Usuario";
+  loadUserData();
+}
+
+function showAuth() {
+  currentUser = null;
+  topics = [];
+  history = [];
+  $("appScreen").classList.add("hidden");
+  $("authScreen").classList.remove("hidden");
+  $("email").value = "";
+  $("password").value = "";
+}
+
+$("signupBtn").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+  if (!email || !password) return showMessage("Introduce tu correo y contraseña.");
+  if (password.length < 6) return showMessage("La contraseña debe tener al menos 6 caracteres.");
+
+  $("signupBtn").disabled = true;
+  showMessage("Creando cuenta...");
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: "https://estudia-bombero.vercel.app" }
+  });
+  $("signupBtn").disabled = false;
+
+  if (error) return showMessage("No se pudo crear la cuenta: " + error.message);
+
+  if (data.session) {
+    showApp(data.user);
+  } else {
+    showMessage("Cuenta creada. Revisa tu correo y confirma la dirección antes de iniciar sesión.");
+  }
+});
+
+$("loginBtn").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+  if (!email || !password) return showMessage("Introduce tu correo y contraseña.");
+
+  $("loginBtn").disabled = true;
+  showMessage("Iniciando sesión...");
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  $("loginBtn").disabled = false;
+
+  if (error) return showMessage("No se pudo iniciar sesión: " + error.message);
+  showApp(data.user);
+});
+
+$("resetBtn").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  if (!email) return showMessage("Escribe primero tu correo electrónico.");
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: "https://estudia-bombero.vercel.app"
+  });
+
+  if (error) return showMessage("No se pudo enviar el correo: " + error.message);
+  showMessage("Si la dirección es válida, recibirás un correo con instrucciones para cambiar la contraseña.");
+});
+
+$("logoutBtn").addEventListener("click", async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) return alert("No se pudo cerrar sesión: " + error.message);
+  showAuth();
+});
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    showApp(session.user);
+  } else if (event === "SIGNED_OUT") {
+    showAuth();
+  }
+});
+
+document.querySelectorAll("nav button").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".page").forEach(page => page.classList.add("hidden"));
+    $(button.dataset.page).classList.remove("hidden");
+    document.querySelectorAll("nav button").forEach(b => b.classList.add("secondary"));
+    button.classList.remove("secondary");
+  });
+});
+
+$("topicForm").addEventListener("submit", event => {
+  event.preventDefault();
+  if (!currentUser) return;
+
+  topics.push({
+    id: Date.now(),
+    name: $("topicName").value.trim(),
+    folder: $("topicFolder").value,
+    notes: $("topicNotes").value.trim()
+  });
+
+  saveTopics();
+  $("topicForm").reset();
+});
+
+function renderTopics() {
+  $("topicList").innerHTML = "";
+
+  if (!topics.length) {
+    $("topicList").textContent = "Todavía no has guardado ningún tema.";
+    return;
+  }
+
+  topics.forEach(topic => {
+    const div = document.createElement("div");
+    div.className = "topic";
+
+    const title = document.createElement("strong");
+    title.textContent = topic.name;
+
+    const folder = document.createElement("p");
+    folder.className = "muted";
+    folder.textContent = topic.folder;
+
+    const notes = document.createElement("p");
+    notes.textContent = topic.notes || "Sin notas.";
+
+    const remove = document.createElement("button");
+    remove.className = "light";
+    remove.textContent = "Eliminar";
+    remove.addEventListener("click", () => {
+      topics = topics.filter(t => t.id !== topic.id);
+      saveTopics();
     });
 
-    function dibujarTemas() {
-      const zona = document.getElementById('listaTemas');
-      if (!temas.length) {
-        zona.innerHTML = '<p class="muted">Todavía no has añadido temas.</p>';
-        return;
+    div.append(title, folder, notes, remove);
+    $("topicList").appendChild(div);
+  });
+}
+
+const questions = [
+  {
+    q: "¿Qué significan las siglas EPI?",
+    a: ["Equipo de Protección Individual", "Elemento de Prevención Interna", "Equipo de Protección Industrial"],
+    correct: 0
+  },
+  {
+    q: "¿Qué gas es imprescindible para la combustión?",
+    a: ["Nitrógeno", "Oxígeno", "Dióxido de carbono"],
+    correct: 1
+  },
+  {
+    q: "¿Cuál es una función habitual de los bomberos?",
+    a: ["Extinción de incendios", "Expedir documentos oficiales", "Gestionar centros educativos"],
+    correct: 0
+  }
+];
+
+let questionIndex = 0;
+let answers = [];
+
+$("startQuiz").addEventListener("click", () => {
+  questionIndex = 0;
+  answers = [];
+  drawQuestion();
+});
+
+function drawQuestion() {
+  const q = questions[questionIndex];
+  $("quizArea").innerHTML = "";
+
+  const heading = document.createElement("h3");
+  heading.textContent = `Pregunta ${questionIndex + 1} de ${questions.length}: ${q.q}`;
+  $("quizArea").appendChild(heading);
+
+  q.a.forEach((answer, index) => {
+    const button = document.createElement("button");
+    button.className = "option";
+    button.textContent = answer;
+    button.addEventListener("click", () => {
+      answers[questionIndex] = index;
+      questionIndex++;
+
+      if (questionIndex < questions.length) {
+        drawQuestion();
+      } else {
+        finishQuiz();
       }
-      zona.innerHTML = '';
-      temas.forEach(t => {
-        const item = document.createElement('article');
-        item.className = 'item';
-        const titulo = document.createElement('strong');
-        titulo.textContent = t.nombre;
-        const carpeta = document.createElement('p');
-        carpeta.className = 'muted';
-        carpeta.textContent = 'Carpeta: ' + t.carpeta;
-        const notas = document.createElement('p');
-        notas.textContent = t.notas;
-        const borrar = document.createElement('button');
-        borrar.className = 'danger';
-        borrar.textContent = 'Eliminar';
-        borrar.onclick = () => {
-          if (confirm('¿Eliminar este tema?')) {
-            temas = temas.filter(x => x.id !== t.id);
-            guardar();
-            dibujarTemas();
-          }
-        };
-        item.append(titulo, carpeta, notas, borrar);
-        zona.appendChild(item);
-      });
-    }
+    });
+    $("quizArea").appendChild(button);
+  });
+}
 
-    const preguntas = [
-      {
-        p: '¿Qué ley regula la prevención de riesgos laborales en España?',
-        o: ['Ley 31/1995', 'Ley 39/2015', 'Ley 7/1985'],
-        r: 0
-      },
-      {
-        p: '¿Qué se debe hacer primero ante una emergencia, si es seguro intervenir?',
-        o: ['Actuar sin valorar el riesgo', 'Valorar la seguridad de la escena', 'Retirar siempre a la víctima'],
-        r: 1
-      },
-      {
-        p: '¿Qué significan las siglas EPI?',
-        o: ['Equipo de Protección Individual', 'Evaluación Preventiva Interna', 'Equipo de Primeros Intervinientes'],
-        r: 0
-      }
-    ];
+function finishQuiz() {
+  let correct = 0;
+  questions.forEach((q, i) => {
+    if (answers[i] === q.correct) correct++;
+  });
 
-    let preguntaActual = 0;
-    let respuestas = [];
+  const percentage = Math.round(correct / questions.length * 100);
+  history.unshift({
+    date: new Date().toLocaleString("es-ES"),
+    correct,
+    total: questions.length,
+    percentage
+  });
 
-    function empezarTest() {
-      preguntaActual = 0;
-      respuestas = [];
-      dibujarPregunta();
-    }
+  saveHistory();
+  $("quizArea").innerHTML = `
+    <h3>Test terminado</h3>
+    <p>Has acertado ${correct} de ${questions.length} preguntas.</p>
+    <h2>${percentage}%</h2>
+    <button id="againBtn">Repetir test</button>
+  `;
+  $("againBtn").addEventListener("click", () => $("startQuiz").click());
+}
 
-    function dibujarPregunta() {
-      const zona = document.getElementById('zonaTest');
-      if (preguntaActual >= preguntas.length) {
-        const aciertos = respuestas.filter((r, i) => r === preguntas[i].r).length;
-        const nota = Math.round(aciertos / preguntas.length * 100);
-        historial.unshift({
-          fecha: new Date().toLocaleDateString('es-ES'),
-          aciertos, total: preguntas.length, nota
-        });
-        guardar();
-        zona.innerHTML =
-          '<h3>Test terminado</h3><p>Has acertado ' + aciertos + ' de ' +
-          preguntas.length + ' (' + nota + '%).</p>' +
-          '<button onclick="empezarTest()">Repetir test</button>';
-        return;
-      }
+function renderHistory() {
+  $("history").innerHTML = "";
 
-      const q = preguntas[preguntaActual];
-      zona.innerHTML = '';
-      const contador = document.createElement('p');
-      contador.className = 'muted';
-      contador.textContent = 'Pregunta ' + (preguntaActual + 1) + ' de ' + preguntas.length;
-      const titulo = document.createElement('p');
-      titulo.className = 'question';
-      titulo.textContent = q.p;
-      zona.append(contador, titulo);
+  if (!history.length) {
+    $("history").textContent = "Todavía no has realizado ningún test.";
+    return;
+  }
 
-      q.o.forEach((opcion, i) => {
-        const label = document.createElement('label');
-        label.className = 'option';
-        const radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.name = 'respuesta';
-        radio.value = i;
-        label.append(radio, document.createTextNode(opcion));
-        zona.appendChild(label);
-      });
+  history.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "topic";
+    div.textContent = `${item.date} — ${item.correct}/${item.total} aciertos (${item.percentage}%)`;
+    $("history").appendChild(div);
+  });
+}
 
-      const siguiente = document.createElement('button');
-      siguiente.textContent = preguntaActual === preguntas.length - 1 ? 'Finalizar test' : 'Siguiente';
-      siguiente.onclick = () => {
-        const seleccion = document.querySelector('input[name="respuesta"]:checked');
-        if (!seleccion) {
-          alert('Selecciona una respuesta antes de continuar.');
-          return;
-        }
-        respuestas.push(Number(seleccion.value));
-        preguntaActual++;
-        dibujarPregunta();
-      };
-      zona.appendChild(siguiente);
-    }
+$("clearHistory").addEventListener("click", () => {
+  if (!confirm("¿Seguro que quieres borrar tu historial?")) return;
+  history = [];
+  saveHistory();
+});
 
-    function dibujarHistorial() {
-      const zona = document.getElementById('historial');
-      if (!historial.length) {
-        zona.innerHTML = '<p class="muted">Todavía no has completado ningún test.</p>';
-        return;
-      }
-      zona.innerHTML = '';
-      historial.forEach(h => {
-        const item = document.createElement('div');
-        item.className = 'item';
-        item.textContent = h.fecha + ' · ' + h.aciertos + '/' + h.total +
-          ' aciertos · ' + h.nota + '%';
-        zona.appendChild(item);
-      });
-    }
+function renderAll() {
+  renderTopics();
+  renderHistory();
+  $("totalTopics").textContent = topics.length;
+  $("totalTests").textContent = history.length;
+  const average = history.length
+    ? Math.round(history.reduce((sum, item) => sum + item.percentage, 0) / history.length)
+    : 0;
+  $("average").textContent = average + "%";
+}
 
-    function actualizar() {
-      document.getElementById('totalTemas').textContent = temas.length;
-      document.getElementById('totalTests').textContent = historial.length;
-      document.getElementById('media').textContent = historial.length
-        ? Math.round(historial.reduce((s, h) => s + h.nota, 0) / historial.length) + '%'
-        : '—';
-    }
-
-    function borrarProgreso() {
-      if (confirm('¿Seguro que quieres borrar el historial de tests?')) {
-        historial = [];
-        guardar();
-        dibujarHistorial();
-      }
-    }
-
-    dibujarTemas();
-    dibujarHistorial();
-    actualizar();
-  </script>
+// Recuperar la sesión guardada al abrir la web.
+(async () => {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    showMessage("No se pudo comprobar la sesión: " + error.message);
+    return;
+  }
+  if (data.session?.user) showApp(data.session.user);
+})();
+</script>
 </body>
 </html>
