@@ -443,7 +443,152 @@ function renderAll() {
     : 0;
   $("average").textContent = average + "%";
 }
+// Gestión de documentos PDF en Supabase Storage
+const DOCUMENT_BUCKET = "Estudia bombero";
 
+function showDocumentMessage(message) {
+  $("documentMessage").textContent = message;
+  $("documentMessage").classList.remove("hidden");
+}
+
+async function loadDocuments() {
+  if (!currentUser) return;
+
+  const list = $("documentList");
+  list.textContent = "Cargando documentos...";
+
+  const folders = [
+    "IVASPE",
+    "Legislación",
+    "Geografía",
+    "Procedimientos internos"
+  ];
+
+  list.innerHTML = "";
+
+  for (const folder of folders) {
+    const heading = document.createElement("h3");
+    heading.textContent = folder;
+    list.appendChild(heading);
+
+    const { data, error } = await supabaseClient.storage
+      .from(DOCUMENT_BUCKET)
+      .list(`${currentUser.id}/${folder}`);
+
+    if (error) {
+      list.textContent = "Error al cargar documentos: " + error.message;
+      return;
+    }
+
+    const files = (data || []).filter(file => file.id);
+
+    if (!files.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "No hay documentos en esta carpeta.";
+      list.appendChild(empty);
+    }
+
+    for (const file of files) {
+      const path = `${currentUser.id}/${folder}/${file.name}`;
+      const item = document.createElement("div");
+      item.className = "topic";
+
+      const name = document.createElement("strong");
+      name.textContent = file.name;
+
+      const open = document.createElement("button");
+      open.textContent = "Abrir PDF";
+      open.addEventListener("click", async () => {
+        const { data, error } = await supabaseClient.storage
+          .from(DOCUMENT_BUCKET)
+          .createSignedUrl(path, 60);
+
+        if (error) {
+          alert("No se pudo abrir el PDF: " + error.message);
+          return;
+        }
+
+        window.open(data.signedUrl, "_blank");
+      });
+
+      const remove = document.createElement("button");
+      remove.className = "light";
+      remove.textContent = "Eliminar";
+
+      remove.addEventListener("click", async () => {
+        if (!confirm("¿Quieres eliminar este documento?")) return;
+
+        const { error } = await supabaseClient.storage
+          .from(DOCUMENT_BUCKET)
+          .remove([path]);
+
+        if (error) {
+          alert("No se pudo eliminar: " + error.message);
+          return;
+        }
+
+        loadDocuments();
+      });
+
+      item.append(name, document.createElement("br"), open, remove);
+      list.appendChild(item);
+    }
+  }
+}
+
+$("uploadDocumentBtn").addEventListener("click", async () => {
+  if (!currentUser) return;
+
+  const file = $("documentFile").files[0];
+  const title = $("documentTitle").value.trim();
+  const folder = $("documentFolder").value;
+
+  if (!file) {
+    showDocumentMessage("Selecciona primero un archivo PDF.");
+    return;
+  }
+
+  if (file.type !== "application/pdf") {
+    showDocumentMessage("Solo puedes subir archivos PDF.");
+    return;
+  }
+
+  if (file.size > 25 * 1024 * 1024) {
+    showDocumentMessage("El PDF no puede superar los 25 MB.");
+    return;
+  }
+
+  const safeName = file.name.replace(/[^\w.-]/g, "_");
+  const fileName = `${Date.now()}_${safeName}`;
+  const path = `${currentUser.id}/${folder}/${fileName}`;
+
+  $("uploadDocumentBtn").disabled = true;
+  showDocumentMessage("Subiendo documento...");
+
+  const { error } = await supabaseClient.storage
+    .from(DOCUMENT_BUCKET)
+    .upload(path, file, {
+      contentType: "application/pdf",
+      upsert: false
+    });
+
+  $("uploadDocumentBtn").disabled = false;
+
+  if (error) {
+    showDocumentMessage("Error al subir el PDF: " + error.message);
+    return;
+  }
+
+  showDocumentMessage(
+    `Documento "${title || file.name}" subido correctamente.`
+  );
+
+  $("documentTitle").value = "";
+  $("documentFile").value = "";
+
+  await loadDocuments();
+});
 // Recuperar la sesión guardada al abrir la web.
 (async () => {
   const { data, error } = await supabaseClient.auth.getSession();
