@@ -152,7 +152,56 @@ let questionIndex = 0;
 let answers = [];
 let appUserId = null;
 const $ = id => document.getElementById(id);
-const FOLDERS = ["IVASPE", "Legislación", "Geografía", "Procedimientos internos"];
+const FOLDERS = [
+  "IVASPE",
+  "Legislación",
+  "Geografía",
+  "Procedimientos internos"
+];
+
+const IVASPE_MODULES = [
+  {
+    name: "Módulo 1 - Operaciones de extinción de incendios y salvamento",
+    topics: [
+      "1. Principios de la lucha contra incendios",
+      "2. Incendios en interiores: desarrollo de incendios en interiores",
+      "3. Incendios forestales: fuego de vegetación",
+      "4. Equipos e instalaciones de prevención de incendios en edificios",
+      "5. Rescate en accidentes de tráfico",
+      "6. Intervención y rescate en altura",
+      "7. Rescate acuático"
+    ]
+  },
+  {
+    name: "Módulo 2 - Otras intervenciones: riesgos naturales y antrópicos",
+    topics: [
+      "8. Riesgos naturales",
+      "9. Riesgos en accidentes con materias peligrosas",
+      "10. Redes de distribución e instalaciones",
+      "11. Principios de construcción y estabilización de estructuras",
+      "12. Urgencias sanitarias"
+    ]
+  },
+  {
+    name: "Módulo 3 - Uso de recursos operativos",
+    topics: [
+      "13. Equipos de protección respiratoria",
+      "14. Medios de extinción",
+      "15. Bombas e hidráulica básica",
+      "16. Vehículos SPEIS. Conducción segura",
+      "17. Equipos de salvamento. Manual de búsqueda y rescate en incendios estructurales",
+      "18. Comunicaciones"
+    ]
+  },
+  {
+    name: "Módulo 4 - Organización y gestión de emergencias. Prevención de riesgos laborales",
+    topics: [
+      "19. Sistema de gestión de emergencias y comunicaciones de la Generalitat Valenciana (1-1-2 Comunitat Valenciana)",,
+      "20. Los planes de emergencia de la Generalitat Valenciana",
+      "21. Prevención de riesgos laborales. Responsabilidades del empleado público"
+    ]
+  }
+];
 
 function storageKey(type) {
   if (!currentUser) return "";
