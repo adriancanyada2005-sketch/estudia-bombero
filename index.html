@@ -222,14 +222,48 @@ function hideDocumentMessage() {
 
 function loadUserData() {
   if (!currentUser) return;
+
   try {
-    topics = JSON.parse(localStorage.getItem(storageKey("temas")) || "[]");
-    history = JSON.parse(localStorage.getItem(storageKey("historial")) || "[]");
+    topics = JSON.parse(
+      localStorage.getItem(storageKey("temas")) || "[]"
+    );
+
+    history = JSON.parse(
+      localStorage.getItem(storageKey("historial")) || "[]"
+    );
+
+    // Añadir automáticamente los 21 temas del IVASPE.
+    IVASPE_MODULES.forEach(module => {
+      module.topics.forEach(topicName => {
+        const exists = topics.some(topic =>
+          topic.name === topicName &&
+          topic.folder === "IVASPE"
+        );
+
+        if (!exists) {
+          topics.push({
+            id: "ivaspe_" + topicName.split(".")[0],
+            name: topicName,
+            folder: "IVASPE",
+            module: module.name,
+            notes: "",
+            automatic: true
+          });
+        }
+      });
+    });
+
+    localStorage.setItem(
+      storageKey("temas"),
+      JSON.stringify(topics)
+    );
+
   } catch (error) {
+    console.error("No se pudieron leer los datos locales:", error);
     topics = [];
     history = [];
-    console.error("No se pudieron leer los datos locales:", error);
   }
+
   renderAll();
 }
 function saveTopics() {
