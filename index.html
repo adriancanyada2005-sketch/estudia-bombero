@@ -96,25 +96,53 @@ nav button{flex:1;min-width:110px}
     </section>
 
     <section id="documents" class="page hidden">
-      <div class="card">
-        <h2>Mis documentos PDF</h2>
-        <p class="muted">Sube y organiza tus documentos de estudio. Los archivos se guardan en tu carpeta privada.</p>
-        <label for="documentTitle">Nombre del documento (opcional)</label>
-        <input id="documentTitle" type="text" maxlength="120" placeholder="Ej. Tema 1 - Ley 31/1995">
-        <label for="documentFolder">Carpeta</label>
-        <select id="documentFolder">
-          <option>IVASPE</option><option>Legislación</option><option>Geografía</option><option>Procedimientos internos</option>
-        </select>
-        <label for="documentFile">Seleccionar PDF</label>
-        <input id="documentFile" type="file" accept="application/pdf,.pdf">
-        <button id="uploadDocumentBtn" type="button">Subir documento</button>
-        <div id="documentMessage" class="message hidden" role="status"></div>
-      </div>
-      <div class="card">
-        <h2>Documentos guardados</h2>
-        <div id="documentList"><p class="muted">Entra en esta sección para cargar tus documentos.</p></div>
-      </div>
-    </section>
+  <div class="card">
+    <h2>Mis documentos</h2>
+    <p class="muted">Organiza tus temarios, apuntes y exámenes.</p>
+
+    <label for="documentType">Tipo de documento</label>
+    <select id="documentType">
+      <option value="study">Material de estudio</option>
+      <option value="questions">Exámenes y preguntas</option>
+    </select>
+
+    <label for="documentTitle">Nombre del documento (opcional)</label>
+    <input id="documentTitle" type="text" maxlength="120"
+      placeholder="Ej. Tema 1 - Constitución">
+
+    <label for="documentFolder">Carpeta</label>
+    <select id="documentFolder">
+      <option>IVASPE</option>
+      <option>Legislación</option>
+      <option>Geografía</option>
+      <option>Procedimientos internos</option>
+    </select>
+
+    <label for="documentTopic">Tema relacionado</label>
+    <select id="documentTopic">
+      <option value="">Selecciona un tema</option>
+      <option value="varios">Varios temas / Por clasificar</option>
+    </select>
+
+    <label for="documentFile">Seleccionar archivo</label>
+    <input id="documentFile" type="file"
+      accept="application/pdf,.pdf,image/jpeg,image/png,image/webp">
+
+    <button id="uploadDocumentBtn" type="button">
+      Subir documento
+    </button>
+
+    <div id="documentMessage" class="message hidden"
+      role="status"></div>
+  </div>
+
+  <div class="card">
+    <h2>Documentos guardados</h2>
+    <div id="documentList">
+      <p class="muted">Entra en esta sección para cargar tus documentos.</p>
+    </div>
+  </div>
+</section>
 
     <section id="exams" class="page hidden">
       <div class="card">
@@ -265,6 +293,31 @@ function loadUserData() {
   }
 
   renderAll();
+}
+  function populateDocumentTopics() {
+  const folder = $("documentFolder").value;
+  const selector = $("documentTopic");
+
+  selector.innerHTML = "";
+
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = "Selecciona un tema";
+  selector.appendChild(defaultOption);
+
+  const folderTopics = topics.filter(topic => topic.folder === folder);
+
+  folderTopics.forEach(topic => {
+    const option = document.createElement("option");
+    option.value = topic.id;
+    option.textContent = topic.name;
+    selector.appendChild(option);
+  });
+
+  const otherOption = document.createElement("option");
+  otherOption.value = "varios";
+  otherOption.textContent = "Varios temas / Por clasificar";
+  selector.appendChild(otherOption);
 }
 function saveTopics() {
   if (!currentUser) return;
