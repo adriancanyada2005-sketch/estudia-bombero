@@ -659,38 +659,66 @@ async function loadDocuments() {
 
 $("uploadDocumentBtn").addEventListener("click", async () => {
   if (!currentUser) return;
+
   hideDocumentMessage();
+
   const file = $("documentFile").files[0];
   const title = $("documentTitle").value.trim();
   const folder = $("documentFolder").value;
-  if (!file) return showDocumentMessage("Selecciona primero un archivo PDF.");
-  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-    return showDocumentMessage("Solo puedes subir archivos PDF.");
+  const type = $("documentType").value;
+  const topicId = $("documentTopic").value;
+  const topic = $("documentTopic").selectedOptions[0]?.textContent || "";
+
+  if (!file) {
+    return showDocumentMessage("Selecciona primero un archivo.");
   }
+
+  const allowedTypes = [
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+  ];
+
+  if (!allowedTypes.includes(file.type)) {
+    return showDocumentMessage("Solo se admiten PDF, JPG, PNG y WEBP.");
+  }
+
   if (file.size > MAX_PDF_SIZE) {
-    return showDocumentMessage("El PDF no puede superar los 25 MB.");
+    return showDocumentMessage("El archivo no puede superar los 25 MB.");
   }
+
   const safeName = file.name.normalize("NFKD").replace(/[^\w.-]/g, "_");
   const fileName = `${Date.now()}_${safeName}`;
   const path = `${currentUser.id}/${folder}/${fileName}`;
+
   const button = $("uploadDocumentBtn");
   button.disabled = true;
   showDocumentMessage("Subiendo documento...");
+
   try {
     const { error } = await supabaseClient.storage
       .from(DOCUMENT_BUCKET)
       .upload(path, file, {
-        contentType: "application/pdf",
+        contentType: file.type,
         upsert: false,
-        metadata: title ? { title } : {}
+        metadata: {
+          title: title || file.name,
+          document_type: type,
+          topic_id: topicId || "",
+          topic_name: topic
+        }
       });
+
     if (error) throw error;
-    showDocumentMessage(`Documento "${title || file.name}" subido correctamente.`);
+
+    showDocumentMessage("Documento subido correctamente.");
     $("documentTitle").value = "";
     $("documentFile").value = "";
     await loadDocuments();
+
   } catch (error) {
-    showDocumentMessage("Error al subir el PDF: " + error.message);
+    showDocumentMessage("Error al subir el archivo: " + error.message);
   } finally {
     button.disabled = false;
   }
