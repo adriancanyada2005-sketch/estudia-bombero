@@ -576,20 +576,31 @@ function renderAll() {
   $("average").textContent = average + "%";
 }
 
-// Documentos PDF: archivos privados por usuario.
+// Documentos privados organizados por tipo y tema.
 async function loadDocuments() {
   if (!currentUser) return;
+
   const list = $("documentList");
   list.innerHTML = "";
+
   const loading = document.createElement("p");
   loading.className = "muted";
   loading.textContent = "Cargando documentos...";
   list.appendChild(loading);
 
+  const groups = [
+    { id: "study", name: "Material de estudio" },
+    { id: "questions", name: "Exámenes y preguntas" },
+    { id: "legacy", name: "Documentos anteriores / Sin clasificar" }
+  ];
+
+  list.innerHTML = "";
+
   for (const folder of FOLDERS) {
-    const heading = document.createElement("h3");
-    heading.textContent = folder;
-    list.appendChild(heading);
+    const folderHeading = document.createElement("h2");
+    folderHeading.textContent = folder;
+    list.appendChild(folderHeading);
+
     try {
       const { data, error } = await supabaseClient.storage
         .from(DOCUMENT_BUCKET)
@@ -597,61 +608,132 @@ async function loadDocuments() {
           limit: 100,
           sortBy: { column: "name", order: "asc" }
         });
+
       if (error) throw error;
+
       const files = (data || []).filter(file => file.id && file.name);
+
       if (!files.length) {
         const empty = document.createElement("p");
         empty.className = "muted";
         empty.textContent = "No hay documentos en esta carpeta.";
         list.appendChild(empty);
+        continue;
       }
+
+      const grouped = {
+        study: {},
+        questions: {},
+        legacy: {}
+      };
+
       files.forEach(file => {
-        const path = `${currentUser.id}/${folder}/${file.name}`;
-        const item = document.createElement("div");
-        item.className = "topic";
-        const name = document.createElement("strong");
-        name.textContent = file.metadata?.title || file.name;
-        const details = document.createElement("p");
-        details.className = "muted";
-        details.textContent = file.name;
-        const open = document.createElement("button");
-        open.textContent = "Abrir PDF";
-        open.addEventListener("click", async () => {
-          const newTab = window.open("about:blank", "_blank");
-          try {
-            const { data: signed, error: signedError } = await supabaseClient.storage
-              .from(DOCUMENT_BUCKET).createSignedUrl(path, 60);
-            if (signedError) throw signedError;
-            if (newTab) newTab.location.href = signed.signedUrl;
-            else window.location.href = signed.signedUrl;
-          } catch (error) {
-            if (newTab) newTab.close();
-            alert("No se pudo abrir el PDF: " + error.message);
-          }
-        });
-        const remove = document.createElement("button");
-        remove.className = "light";
-        remove.textContent = "Eliminar";
-        remove.addEventListener("click", async () => {
-          if (!confirm("¿Quieres eliminar este documento?")) return;
-          remove.disabled = true;
-          try {
-            const { error } = await supabaseClient.storage
-              .from(DOCUMENT_BUCKET).remove([path]);
-            if (error) throw error;
-            await loadDocuments();
-          } catch (error) {
-            alert("No se pudo eliminar: " + error.message);
-            remove.disabled = false;
-          }
-        });
-        item.append(name, details, open, remove);
-        list.appendChild(item);
+        const metadata = file.metadata || file.user_metadata || {};
+        const type = metadata.document_type;
+        const topicName = metadata.topic_name;
+
+        let group = "legacy";
+
+        if (type === "study") group = "study";
+        if (type === "questions") group = "questions";
+
+        const topic = topicName || "Sin tema asignado";
+
+        if (!grouped[group][topic]) {
+          grouped[group][topic] = [];
+        }
+
+        grouped[group][topic].push(file);
       });
+
+      groups.forEach(group => {
+        const topicsInGroup = grouped[group.id];
+        const topicNames = Object.keys(topicsInGroup);
+
+        if (!topicNames.length) return;
+
+        const typeHeading = document.createElement("h3");
+        typeHeading.textContent = group.name;
+        list.appendChild(typeHeading);
+
+        topicNames.forEach(topicName => {
+          const topicHeading = document.createElement("h4");
+          topicHeading.textContent = topicName;
+          list.appendChild(topicHeading);
+
+          topicsInGroup[topicName].forEach(file => {
+            const path = `${currentUser.id}/${folder}/${file.name}`;
+            const item = document.createElement("div");
+            item.className = "topic";
+
+            const metadata = file.metadata || file.user_metadata || {};
+
+            const name = document.createElement("strong");
+            name.textContent = metadata.title || file.name;
+
+            const details = document.createElement("p");
+            details.className = "muted";
+            details.textContent = file.name;
+
+            const open = document.createElement("button");
+            open.textContent = "Abrir archivo";
+
+            open.addEventListener("click", async () => {
+              const newTab = window.open("about:blank", "_blank");
+
+              try {
+                const { data: signed, error: signedError } =
+                  await supabaseClient.storage
+                    .from(DOCUMENT_BUCKET)
+                    .createSignedUrl(path, 60);
+
+                if (signedError) throw signedError;
+
+                if (newTab) {
+                  newTab.location.href = signed.signedUrl;
+                } else {
+                  window.location.href = signed.signedUrl;
+                }
+              } catch (error) {
+                if (newTab) newTab.close();
+                alert("No se pudo abrir el archivo: " + error.message);
+              }
+            });
+
+            const remove = document.createElement("button");
+            remove.className = "light";
+            remove.textContent = "Eliminar";
+
+            remove.addEventListener("click", async () => {
+              if (!confirm("¿Quieres eliminar este documento?")) return;
+
+              remove.disabled = true;
+
+              try {
+                const { error } = await supabaseClient.storage
+                  .from(DOCUMENT_BUCKET)
+                  .remove([path]);
+
+                if (error) throw error;
+
+                await loadDocuments();
+              } catch (error) {
+                alert("No se pudo eliminar: " + error.message);
+                remove.disabled = false;
+              }
+            });
+
+            item.append(name, details, open, remove);
+            list.appendChild(item);
+          });
+        });
+      });
+
     } catch (error) {
       const errorLine = document.createElement("p");
       errorLine.className = "message";
-      errorLine.textContent = `Error al cargar ${folder}: ${error.message}`;
+      errorLine.textContent =
+        `Error al cargar ${folder}: ${error.message}`;
       list.appendChild(errorLine);
     }
   }
