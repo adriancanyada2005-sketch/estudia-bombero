@@ -319,6 +319,7 @@ function loadUserData() {
   otherOption.textContent = "Varios temas / Por clasificar";
   selector.appendChild(otherOption);
 }
+$("documentFolder").addEventListener("change", populateDocumentTopics);
 function saveTopics() {
   if (!currentUser) return;
   localStorage.setItem(storageKey("temas"), JSON.stringify(topics));
